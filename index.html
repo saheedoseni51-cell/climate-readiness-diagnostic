@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Climate Readiness Diagnostic Tool</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --green-1: #e8f5e9; --green-2: #c8e6c9; --green-3: #4caf50;
+  --green-4: #2e7d32; --green-5: #1b5e20;
+  --amber: #ff8f00; --red: #d32f2f; --blue: #1565c0;
+  --gray-1: #f5f5f5; --gray-2: #e0e0e0; --gray-3: #9e9e9e;
+  --gray-4: #616161; --gray-5: #212121;
+  --shadow: 0 2px 12px rgba(0,0,0,.08);
+  --radius: 12px;
+}
+body {
+  font-family: 'Inter', -apple-system, sans-serif;
+  background: #f0f4f0;
+  color: var(--gray-5);
+  line-height: 1.6;
+  min-height: 100vh;
+}
+.hidden { display: none !important; }
+
+/* Header */
+header {
+  background: linear-gradient(135deg, var(--green-5) 0%, var(--green-4) 50%, #1a3a2a 100%);
+  color: #fff; padding: 0;
+  position: sticky; top: 0; z-index: 100;
+  box-shadow: 0 2px 20px rgba(0,0,0,.15);
+}
+.header-inner {
+  max-width: 1100px; margin: 0 auto;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 24px;
+}
+.logo { display: flex; align-items: center; gap: 12px; }
+.logo-icon {
+  width: 40px; height: 40px; background: rgba(255,255,255,.15);
+  border-radius: 10px; display: flex; align-items: center; justify-content: center;
+  font-size: 22px;
+}
+.logo h1 { font-size: 20px; font-weight: 700; letter-spacing: -.3px; }
+.logo span { font-size: 13px; color: rgba(255,255,255,.7); display: block; font-weight: 400; }
+.header-progress { display: flex; align-items: center; gap: 12px; }
+.progress-ring {
+  width: 44px; height: 44px; border-radius: 50%;
+  background: conic-gradient(rgba(255,255,255,.3) 0deg, rgba(255,255,255,.3) 0deg);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 600; position: relative;
+}
+.progress-ring::before {
+  content: ''; position: absolute; inset: 3px;
+  border-radius: 50%; background: var(--green-5);
+}
+.progress-ring span { position: relative; z-index: 1; }
+
+/* Main Container */
+.container { max-width: 820px; margin: 0 auto; padding: 32px 24px 80px; }
+
+/* Landing */
+.landing {
+  text-align: center; padding: 60px 20px 40px;
+}
+.landing-badge {
+  display: inline-block; background: var(--green-1); color: var(--green-4);
+  padding: 6px 16px; border-radius: 20px; font-size: 13px; font-weight: 600;
+  margin-bottom: 20px;
+}
+.landing h2 { font-size: 36px; font-weight: 800; margin-bottom: 16px;
+  letter-spacing: -.5px; line-height: 1.2; }
+.landing h2 em { font-style: normal; color: var(--green-4); }
+.landing p { font-size: 17px; color: var(--gray-4); max-width: 600px; margin: 0 auto 32px; }
+.metrics-grid {
+  display: grid; grid-template-columns: repeat(3,1fr); gap: 16px;
+  max-width: 500px; margin: 0 auto 40px;
+}
+.metric-card {
+  background: #fff; border-radius: var(--radius); padding: 20px 16px;
+  box-shadow: var(--shadow);
+}
+.metric-card .num { font-size: 28px; font-weight: 800; color: var(--green-4); }
+.metric-card .label { font-size: 12px; color: var(--gray-3); text-transform: uppercase;
+  letter-spacing: .5px; font-weight: 600; }
+.btn {
+  display: inline-flex; align-items: center; gap: 10px;
+  padding: 14px 36px; border: none; border-radius: 50px;
+  font-size: 16px; font-weight: 600; cursor: pointer;
+  transition: all .2s; text-decoration: none;
+}
+.btn-primary { background: var(--green-4); color: #fff; }
+.btn-primary:hover { background: var(--green-5); transform: translateY(-1px); box-shadow: 0 8px 24px rgba(46,125,50,.3); }
+.btn-secondary { background: var(--gray-1); color: var(--gray-5); }
+.btn-secondary:hover { background: var(--gray-2); }
+.btn-outline { background: transparent; color: var(--green-4); border: 2px solid var(--green-4); }
+.btn-outline:hover { background: var(--green-1); }
+.btn-sm { padding: 10px 20px; font-size: 14px; }
+
+/* Questionnaire */
+.questionnaire { animation: fadeUp .4s ease; }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+.category-section { margin-bottom: 40px; }
+.category-header {
+  background: #fff; border-radius: var(--radius); padding: 24px 28px;
+  box-shadow: var(--shadow); margin-bottom: 16px;
+  display: flex; align-items: center; gap: 16px;
+}
+.category-icon {
+  width: 48px; height: 48px; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24px; flex-shrink: 0;
+}
+.category-header h3 { font-size: 18px; font-weight: 700; }
+.category-header p { font-size: 13px; color: var(--gray-3); margin-top: 2px; }
+
+.question-card {
+  background: #fff; border-radius: var(--radius); padding: 20px 28px;
+  box-shadow: var(--shadow); margin-bottom: 10px;
+  display: flex; align-items: flex-start; gap: 16px;
+}
+.question-num {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: var(--green-1); color: var(--green-4);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 700; flex-shrink: 0; margin-top: 2px;
+}
+.question-text { flex: 1; }
+.question-text p { font-size: 15px; font-weight: 500; margin-bottom: 10px; }
+.options { display: flex; gap: 8px; flex-wrap: wrap; }
+.option-btn {
+  padding: 6px 14px; border: 2px solid var(--gray-2); border-radius: 8px;
+  background: #fff; cursor: pointer; font-size: 13px; font-weight: 500;
+  transition: all .15s; color: var(--gray-4);
+  display: flex; flex-direction: column; align-items: center; gap: 1px;
+}
+.option-btn:hover { border-color: var(--green-3); }
+.option-btn.selected { border-color: var(--green-4); background: var(--green-1); color: var(--green-4); }
+.option-btn .opt-label { font-size: 11px; font-weight: 400; color: var(--gray-3); }
+.option-btn.selected .opt-label { color: var(--green-3); }
+
+/* Results */
+.results { animation: fadeUp .4s ease; }
+.results-header {
+  text-align: center; padding: 40px 20px;
+}
+.results-header .score-ring {
+  width: 140px; height: 140px; border-radius: 50%;
+  margin: 0 auto 20px;
+  display: flex; align-items: center; justify-content: center;
+  position: relative;
+}
+.results-header .score-ring-bg {
+  position: absolute; inset: 0; border-radius: 50%;
+  background: conic-gradient(var(--green-4) 0deg, var(--gray-2) 0deg);
+}
+.results-header .score-ring-inner {
+  position: relative; z-index: 1;
+  width: 110px; height: 110px; border-radius: 50%;
+  background: #fff; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+}
+.results-header .score-ring-inner .big { font-size: 42px; font-weight: 800; line-height: 1; }
+.results-header .score-ring-inner .small { font-size: 13px; color: var(--gray-3); font-weight: 500; }
+.results-header h2 { font-size: 28px; font-weight: 700; margin-bottom: 8px; }
+.results-header .grade {
+  display: inline-block; padding: 4px 16px; border-radius: 20px;
+  font-weight: 700; font-size: 14px;
+}
+.results-header p { color: var(--gray-4); max-width: 500px; margin: 12px auto 0; }
+
+.score-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+  margin-bottom: 40px;
+}
+.score-card {
+  background: #fff; border-radius: var(--radius); padding: 20px 24px;
+  box-shadow: var(--shadow);
+}
+.score-card .cat-name { font-size: 14px; font-weight: 600; margin-bottom: 12px; }
+.score-card .cat-bar {
+  height: 8px; background: var(--gray-1); border-radius: 4px; overflow: hidden;
+  margin-bottom: 6px;
+}
+.score-card .cat-bar-fill {
+  height: 100%; border-radius: 4px; transition: width .8s ease;
+}
+.score-card .cat-score-row {
+  display: flex; justify-content: space-between;
+  font-size: 12px; color: var(--gray-3);
+}
+.score-card .cat-score-row strong { color: var(--gray-5); }
+
+.breakdown-table {
+  background: #fff; border-radius: var(--radius); box-shadow: var(--shadow);
+  overflow: hidden; margin-bottom: 40px;
+}
+.breakdown-table table { width: 100%; border-collapse: collapse; }
+.breakdown-table th {
+  background: var(--green-1); color: var(--green-5); text-align: left;
+  padding: 14px 20px; font-size: 13px; font-weight: 600;
+}
+.breakdown-table td { padding: 12px 20px; font-size: 14px; border-top: 1px solid var(--gray-1); }
+.breakdown-table tr:last-child td { border-bottom: none; }
+.breakdown-table .score-dot {
+  display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 8px;
+}
+
+.recommendations { margin-bottom: 40px; }
+.rec-card {
+  background: #fff; border-radius: var(--radius); padding: 20px 24px;
+  box-shadow: var(--shadow); margin-bottom: 12px;
+}
+.rec-card .rec-icon { font-size: 20px; margin-bottom: 8px; }
+.rec-card h4 { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+.rec-card p { font-size: 14px; color: var(--gray-4); }
+
+/* Nav */
+.nav-bar {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 32px;
+}
+.nav-bar .back-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: none; border: none; cursor: pointer;
+  font-size: 14px; color: var(--gray-3); font-weight: 500;
+  padding: 8px 0;
+}
+.nav-bar .back-btn:hover { color: var(--gray-5); }
+
+/* Footer Actions */
+.actions { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; margin-top: 32px; }
+
+/* Modal */
+.modal-overlay {
+  position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:200;
+  display:flex;align-items:center;justify-content:center;
+  padding:24px;animation:fadeIn .2s ease;
+}
+.modal-overlay.hidden { display:none; }
+.modal {
+  background:#fff;border-radius:16px;padding:32px;max-width:440px;width:100%;
+  box-shadow:0 20px 60px rgba(0,0,0,.15);
+}
+@keyframes fadeIn { from{opacity:0} to{opacity:1} }
+
+/* Responsive */
+@media (max-width: 600px) {
+  .header-inner { padding: 12px 16px; }
+  .logo h1 { font-size: 16px; }
+  .logo span { display: none; }
+  .header-progress .progress-text { display: none; }
+  .landing h2 { font-size: 26px; }
+  .metrics-grid { grid-template-columns: 1fr; max-width: 100%; }
+  .score-grid { grid-template-columns: 1fr; }
+  .category-header { padding: 18px 20px; }
+  .question-card { padding: 16px 20px; flex-direction: column; }
+  .options { gap: 6px; }
+  .option-btn { padding: 5px 10px; font-size: 12px; }
+  .results-header h2 { font-size: 22px; }
+  .container { padding: 20px 16px 60px; }
+}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="logo">
+      <div class="logo-icon">&#9881;</div>
+      <div>
+        <h1>Climate Readiness</h1>
+        <span>Diagnostic Tool</span>
+      </div>
+    </div>
+    <div class="header-progress" style="display:flex;align-items:center;gap:16px;">
+      <a href="admin.html" style="color:rgba(255,255,255,.7);text-decoration:none;font-size:13px;font-weight:500;padding:6px 14px;border:1px solid rgba(255,255,255,.2);border-radius:6px;transition:.15s;" onmouseover="this.style.color='#fff';this.style.borderColor='rgba(255,255,255,.5)'" onmouseout="this.style.color='rgba(255,255,255,.7)';this.style.borderColor='rgba(255,255,255,.2)'">&#9878; Admin</a>
+      <span class="progress-text" style="font-size:13px;font-weight:500;color:rgba(255,255,255,.8);">0 / 30</span>
+      <div class="progress-ring" id="progressRing">
+        <span id="progressPct">0%</span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="container" id="app">
+
+  <!-- Landing -->
+  <div id="landing" class="landing">
+    <div class="landing-badge">&#10003; TCFD &amp; CDP Aligned</div>
+    <h2>How climate-ready is<br>your <em>organization</em>?</h2>
+    <p>Measure your organization's climate preparedness across 6 critical domains. Get a benchmark score, gap analysis, and actionable recommendations.</p>
+    <div class="metrics-grid">
+      <div class="metric-card">
+        <div class="num">6</div>
+        <div class="label">Domains</div>
+      </div>
+      <div class="metric-card">
+        <div class="num">10</div>
+        <div class="label">Minutes</div>
+      </div>
+      <div class="metric-card">
+        <div class="num">30</div>
+        <div class="label">Questions</div>
+      </div>
+    </div>
+    <button class="btn btn-primary" onclick="promptName()">&#8594; Start Diagnostic</button>
+  </div>
+
+  <!-- Name Modal -->
+  <div id="nameModal" class="modal-overlay hidden">
+    <div class="modal">
+      <h3 style="margin-bottom:8px;font-size:18px;">Before you begin...</h3>
+      <p style="color:var(--gray-4);margin-bottom:16px;font-size:14px;">Enter your name and organization so we can save your results.</p>
+      <input type="text" id="userNameInput" placeholder="Your full name" style="width:100%;padding:12px 16px;border:2px solid var(--gray-2);border-radius:8px;font-size:15px;font-family:inherit;margin-bottom:10px;outline:none;transition:.15s;" onfocus="this.style.borderColor='var(--green-3)'" onblur="this.style.borderColor='var(--gray-2)'">
+      <input type="text" id="orgNameInput" placeholder="Organization name" style="width:100%;padding:12px 16px;border:2px solid var(--gray-2);border-radius:8px;font-size:15px;font-family:inherit;margin-bottom:16px;outline:none;transition:.15s;" onfocus="this.style.borderColor='var(--green-3)'" onblur="this.style.borderColor='var(--gray-2)'">
+      <div style="display:flex;gap:10px;justify-content:flex-end;">
+        <button class="btn btn-secondary" onclick="closeNameModal()" style="padding:10px 24px;font-size:14px;">Cancel</button>
+        <button class="btn btn-primary" onclick="confirmName()" style="padding:10px 24px;font-size:14px;">&#8594; Start</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Questionnaire -->
+  <div id="questionnaire" class="questionnaire hidden">
+    <div class="nav-bar">
+      <button class="back-btn" onclick="confirmGoBack()">&#8592; Back</button>
+      <span id="sectionIndicator" style="font-size:13px;color:var(--gray-3);font-weight:500;">Governance &amp; Strategy</span>
+    </div>
+    <div id="questionsContainer"></div>
+    <div class="actions">
+      <button class="btn btn-secondary" onclick="confirmGoBack()">&#8592; Back</button>
+      <button class="btn btn-primary" id="nextBtn" onclick="nextSection()">Next Section &#8594;</button>
+      <button class="btn btn-primary hidden" id="submitBtn" onclick="submitDiagnostic()">&#10003; View Results</button>
+    </div>
+  </div>
+
+  <!-- Results -->
+  <div id="results" class="results hidden">
+    <div class="results-header">
+      <div class="score-ring" id="scoreRing">
+        <div class="score-ring-bg" id="scoreRingBg"></div>
+        <div class="score-ring-inner">
+          <span class="big" id="overallScore">0</span>
+          <span class="small">/ 150</span>
+        </div>
+      </div>
+      <h2 id="resultTitle">Your Climate Readiness Score</h2>
+      <div class="grade" id="resultGrade">Not Assessed</div>
+      <p id="resultSummary"></p>
+    </div>
+
+    <div class="score-grid" id="scoreGrid"></div>
+
+    <div class="breakdown-table" id="breakdownTable"></div>
+
+    <div class="recommendations" id="recommendationsContainer">
+      <h3 style="font-size:18px;font-weight:700;margin-bottom:16px;">&#128161; Recommendations</h3>
+      <div id="recList"></div>
+    </div>
+
+    <div class="actions">
+      <button class="btn btn-secondary" onclick="restart()">&#8634; Retake Diagnostic</button>
+      <button class="btn btn-outline" onclick="downloadPDF()">&#128196; Download PDF</button>
+    </div>
+  </div>
+</div>
+
+
+
+<script>
+// ─── Data ──────────────────────────────────────────────────────────
+const CATEGORIES = [
+  {
+    id: 'governance', icon: '&#9889;', color: '#1565c0', bg: '#e3f2fd',
+    name: 'Governance &amp; Strategy',
+    desc: 'Board oversight, climate policies, and strategic alignment with Paris goals.'
+  },
+  {
+    id: 'risk', icon: '&#128737;', color: '#e65100', bg: '#fff3e0',
+    name: 'Risk Assessment &amp; Management',
+    desc: 'Identification, assessment, and management of climate-related risks.'
+  },
+  {
+    id: 'emissions', icon: '&#127758;', color: '#2e7d32', bg: '#e8f5e9',
+    name: 'Emissions &amp; Energy',
+    desc: 'GHG accounting, reduction targets, and renewable energy adoption.'
+  },
+  {
+    id: 'infrastructure', icon: '&#127959;', color: '#6a1b9a', bg: '#f3e5f5',
+    name: 'Infrastructure &amp; Operations',
+    desc: 'Resilience of physical assets, operations, and business continuity.'
+  },
+  {
+    id: 'supplychain', icon: '&#128666;', color: '#c62828', bg: '#ffebee',
+    name: 'Supply Chain &amp; Value Chain',
+    desc: 'Supplier engagement, Scope 3 emissions, and value chain resilience.'
+  },
+  {
+    id: 'disclosure', icon: '&#128202;', color: '#00838f', bg: '#e0f7fa',
+    name: 'Stakeholder Engagement &amp; Disclosure',
+    desc: 'Transparency, TCFD/CDP reporting, and stakeholder communication.'
+  }
+];
+
+const QUESTIONS = [
+  // Governance & Strategy
+  { cat: 'governance', q: 'Does the board or executive team have explicit climate oversight responsibilities?' },
+  { cat: 'governance', q: 'Has your organization adopted a formal climate policy or strategy aligned with Paris Agreement goals?' },
+  { cat: 'governance', q: 'Are climate-related KPIs integrated into executive compensation or performance reviews?' },
+  { cat: 'governance', q: 'Does your organization conduct climate scenario analysis (e.g., 1.5&deg;C or 2&deg;C scenarios)?' },
+  { cat: 'governance', q: 'Is there a dedicated climate or sustainability team with clear accountability and budget?' },
+  // Risk Assessment & Management
+  { cat: 'risk', q: 'Has your organization completed a physical climate risk assessment (floods, heat, storms, sea level)?' },
+  { cat: 'risk', q: 'Has your organization assessed transition risks (policy, legal, market, reputational)?' },
+  { cat: 'risk', q: 'Are climate risks integrated into the enterprise risk management (ERM) framework?' },
+  { cat: 'risk', q: 'Does your organization quantify the financial impact of climate risks (CAPEX, OPEX, revenue)?' },
+  { cat: 'risk', q: 'Is there a process to regularly monitor and update climate risk assessments?' },
+  // Emissions & Energy
+  { cat: 'emissions', q: 'Does your organization measure and report Scope 1 and Scope 2 GHG emissions annually?' },
+  { cat: 'emissions', q: 'Does your organization measure and report Scope 3 emissions?' },
+  { cat: 'emissions', q: 'Has your organization set science-based emissions reduction targets (SBTi)?' },
+  { cat: 'emissions', q: 'What percentage of your energy consumption comes from renewable sources?' },
+  { cat: 'emissions', q: 'Does your organization have a verified carbon offset or net-zero roadmap?' },
+  // Infrastructure & Operations
+  { cat: 'infrastructure', q: 'Have critical assets and facilities been assessed for climate vulnerability?' },
+  { cat: 'infrastructure', q: 'Does your business continuity plan explicitly address climate-related disruptions?' },
+  { cat: 'infrastructure', q: 'Are climate resilience criteria included in new capital projects and site selection?' },
+  { cat: 'infrastructure', q: 'Has your organization invested in climate adaptation measures (e.g., flood defenses, cooling)?' },
+  { cat: 'infrastructure', q: 'Do you have insurance coverage for climate-related physical damages?' },
+  // Supply Chain & Value Chain
+  { cat: 'supplychain', q: 'Does your organization engage key suppliers on climate risk and emissions reduction?' },
+  { cat: 'supplychain', q: 'Have you mapped climate risks in your upstream and downstream value chain?' },
+  { cat: 'supplychain', q: 'Are climate criteria included in supplier procurement and selection processes?' },
+  { cat: 'supplychain', q: 'Does your organization track and report Scope 3 emissions from purchased goods?' },
+  { cat: 'supplychain', q: 'Is there a supplier diversification strategy to reduce single-source climate risk?' },
+  // Stakeholder Engagement & Disclosure
+  { cat: 'disclosure', q: 'Does your organization publicly disclose climate risks and strategy (CDP, TCFD, SEC)?' },
+  { cat: 'disclosure', q: 'Are climate disclosures aligned with TCFD recommendations or ISSB standards?' },
+  { cat: 'disclosure', q: 'Do you engage investors/analysts on climate performance and targets?' },
+  { cat: 'disclosure', q: 'Is climate data externally assured or verified by a third party?' },
+  { cat: 'disclosure', q: 'Does your organization engage with policymakers or industry groups on climate action?' },
+];
+
+const OPTIONS = [
+  { value: 1, label: 'Not', sub: 'at all' },
+  { value: 2, label: 'Minimally', sub: '' },
+  { value: 3, label: 'Partially', sub: '' },
+  { value: 4, label: 'Largely', sub: '' },
+  { value: 5, label: 'Fully', sub: '' }
+];
+
+// ─── State ─────────────────────────────────────────────────────────
+let answers = {};
+let currentSection = 0;
+let totalSections = CATEGORIES.length;
+let currentUser = null;
+let currentRecordId = null;
+
+// ─── Name Prompt ──────────────────────────────────────────────────
+function promptName() {
+  document.getElementById('nameModal').classList.remove('hidden');
+  document.getElementById('userNameInput').focus();
+}
+function closeNameModal() {
+  document.getElementById('nameModal').classList.add('hidden');
+  document.getElementById('userNameInput').value = '';
+  document.getElementById('orgNameInput').value = '';
+}
+function confirmName() {
+  const name = document.getElementById('userNameInput').value.trim();
+  const org = document.getElementById('orgNameInput').value.trim();
+  if (!name) { alert('Please enter your name.'); return; }
+  currentUser = { name, org: org || '(not specified)', date: new Date().toISOString() };
+  closeNameModal();
+  startDiagnostic();
+}
+
+// ─── Supabase ──────────────────────────────────────────────────────
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+async function fetchRecord(id) {
+  const { data, error } = await sb.from('assessments').select('*').eq('id', id).maybeSingle();
+  if (error) { console.error('Supabase fetch error:', error); return null; }
+  return data;
+}
+
+async function saveRecord(record) {
+  const { data, error } = await sb.from('assessments').insert({
+    user_name: record.user.name,
+    user_org: record.user.org,
+    answers: record.answers,
+    scores: record.scores,
+    overall: record.overall,
+    max_overall: record.maxOverall,
+    pct: record.pct,
+    grade: record.grade
+  }).select('id').single();
+  if (error) { console.error('Supabase insert error:', error); return null; }
+  return data;
+}
+
+// ─── Helpers ────────────────────────────────────────────────────────
+function esc(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
+function getCatIndex(catId) { return CATEGORIES.findIndex(c => c.id === catId); }
+function questionsForCat(catId) { return QUESTIONS.filter(q => q.cat === catId); }
+function sectionQuestions(idx) {
+  if (idx < 0 || idx >= CATEGORIES.length) return [];
+  return QUESTIONS.filter(q => q.cat === CATEGORIES[idx].id);
+}
+function isSectionComplete(idx) {
+  return sectionQuestions(idx).every(q => answers[q.q] !== undefined);
+}
+function totalAnswered() { return Object.keys(answers).length; }
+
+function updateProgress() {
+  const answered = totalAnswered();
+  const total = QUESTIONS.length;
+  const pct = Math.round((answered / total) * 100);
+  document.querySelector('.progress-text').textContent = `${answered} / ${total}`;
+  document.getElementById('progressPct').textContent = `${pct}%`;
+  const ring = document.getElementById('progressRing');
+  const deg = (answered / total) * 360;
+  ring.style.background = deg >= 360
+    ? `conic-gradient(#81c784 ${deg}deg, #81c784 ${deg}deg)`
+    : `conic-gradient(#81c784 ${deg}deg, rgba(255,255,255,.15) ${deg}deg)`;
+}
+
+// ─── Navigation ────────────────────────────────────────────────────
+function startDiagnostic() {
+  document.getElementById('landing').classList.add('hidden');
+  document.getElementById('questionnaire').classList.remove('hidden');
+  currentSection = 0;
+  renderSection();
+  updateProgress();
+}
+
+function confirmGoBack() {
+  if (totalAnswered() > 0 && !confirm('Going back will clear your answers. Continue?')) return;
+  answers = {};
+  currentUser = null;
+  currentSection = 0;
+  document.getElementById('landing').classList.remove('hidden');
+  document.getElementById('questionnaire').classList.add('hidden');
+  document.getElementById('results').classList.add('hidden');
+  updateProgress();
+}
+
+function nextSection() {
+  if (!isSectionComplete(currentSection)) {
+    alert('Please answer all questions in this section before proceeding.');
+    return;
+  }
+  if (currentSection < totalSections - 1) {
+    currentSection++;
+    renderSection();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+}
+
+function prevSection() {
+  if (currentSection > 0) {
+    currentSection--;
+    renderSection();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+}
+
+// ─── Render Questions ──────────────────────────────────────────────
+function renderSection() {
+  const cat = CATEGORIES[currentSection];
+  const qs = sectionQuestions(currentSection);
+
+  document.getElementById('sectionIndicator').innerHTML = `${cat.icon} ${cat.name}`;
+
+  let html = `<div class="category-section">`;
+  html += `<div class="category-header">
+    <div class="category-icon" style="background:${cat.bg};color:${cat.color};">${cat.icon}</div>
+    <div>
+      <h3>${cat.name}</h3>
+      <p>${cat.desc}</p>
+    </div>
+  </div>`;
+
+  qs.forEach((q, idx) => {
+    const answer = answers[q.q] || 0;
+    html += `<div class="question-card">
+      <div class="question-num">${idx + 1}</div>
+      <div class="question-text">
+        <p>${q.q}</p>
+        <div class="options">`;
+    OPTIONS.forEach(opt => {
+      const sel = answer === opt.value ? 'selected' : '';
+      html += `<button class="option-btn ${sel}" data-cat="${q.cat}" data-q="${q.q.replace(/"/g, '&quot;')}" data-val="${opt.value}" onclick="selectAnswer(this)">
+        ${opt.label}
+        <span class="opt-label">${opt.sub}</span>
+      </button>`;
+    });
+    html += `</div></div></div>`;
+  });
+
+  html += `</div>`;
+  document.getElementById('questionsContainer').innerHTML = html;
+
+  // Show/hide nav buttons
+  const nextBtn = document.getElementById('nextBtn');
+  const submitBtn = document.getElementById('submitBtn');
+  if (currentSection === totalSections - 1) {
+    nextBtn.classList.add('hidden');
+    submitBtn.classList.remove('hidden');
+  } else {
+    nextBtn.classList.remove('hidden');
+    submitBtn.classList.add('hidden');
+  }
+}
+
+function selectAnswer(el) {
+  const question = el.dataset.q;
+  const value = parseInt(el.dataset.val);
+  answers[question] = value;
+  // Update UI
+  el.parentElement.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  updateProgress();
+}
+
+// ─── Submit & Results ──────────────────────────────────────────────
+async function submitDiagnostic() {
+  if (totalAnswered() < QUESTIONS.length) {
+    alert(`Please answer all ${QUESTIONS.length} questions before viewing results.`);
+    return;
+  }
+  const { scores, overall, maxOverall, pct } = computeScores();
+  const grade = getGrade(pct);
+  const result = await saveRecord({
+    user: currentUser,
+    answers: { ...answers },
+    scores: Object.fromEntries(
+      CATEGORIES.map(c => [c.id, { score: scores[c.id].score, max: scores[c.id].max }])
+    ),
+    overall, maxOverall, pct,
+    grade: grade.label
+  });
+  if (!result) { alert('Failed to save results. Check your connection.'); return; }
+  currentRecordId = result.id;
+  document.getElementById('questionnaire').classList.add('hidden');
+  document.getElementById('results').classList.remove('hidden');
+  renderResults();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function computeScores() {
+  const scores = {};
+  CATEGORIES.forEach(cat => {
+    const qs = questionsForCat(cat.id);
+    let total = 0;
+    qs.forEach(q => { total += answers[q.q] || 0; });
+    scores[cat.id] = { score: total, max: qs.length * 5, count: qs.length };
+  });
+  const overall = Object.values(scores).reduce((s, v) => s + v.score, 0);
+  const maxOverall = CATEGORIES.length * 5 * 5;
+  return { scores, overall, maxOverall, pct: Math.round((overall / maxOverall) * 100) };
+}
+
+function getGrade(pct) {
+  if (pct >= 85) return { label: 'Climate Leader', color: '#1b5e20', bg: '#e8f5e9' };
+  if (pct >= 70) return { label: 'Advanced', color: '#2e7d32', bg: '#e8f5e9' };
+  if (pct >= 50) return { label: 'Developing', color: '#e65100', bg: '#fff3e0' };
+  if (pct >= 30) return { label: 'Early Stage', color: '#c62828', bg: '#ffebee' };
+  return { label: 'Beginning', color: '#b71c1c', bg: '#ffebee' };
+}
+
+function getSummary(pct) {
+  if (pct >= 85) return 'Your organization demonstrates strong climate leadership with comprehensive systems across all domains. Focus on maintaining momentum and sharing best practices.';
+  if (pct >= 70) return 'Solid climate readiness with well-established practices. Prioritize closing remaining gaps and moving toward full integration.';
+  if (pct >= 50) return 'Foundational climate practices are in place. Significant opportunities exist to strengthen governance, risk management, and emissions reduction.';
+  if (pct >= 30) return 'Early efforts are underway. Prioritize board-level governance, risk assessment, and GHG accounting as foundational next steps.';
+  return 'Your organization is at the beginning of its climate readiness journey. Start with establishing climate governance and conducting a basic risk screening.';
+}
+
+function renderResults() {
+  const { scores, overall, maxOverall, pct } = computeScores();
+  const grade = getGrade(pct);
+
+  // Overall score ring
+  const ring = document.getElementById('scoreRingBg');
+  const deg = (overall / maxOverall) * 360;
+  ring.style.background = `conic-gradient(${grade.color} ${deg}deg, var(--gray-2) ${deg}deg)`;
+  document.getElementById('overallScore').textContent = overall;
+  document.getElementById('resultTitle').textContent = `Your Climate Readiness Score: ${pct}%`;
+  const gradeEl = document.getElementById('resultGrade');
+  gradeEl.textContent = grade.label;
+  gradeEl.style.background = grade.bg;
+  gradeEl.style.color = grade.color;
+  document.getElementById('resultSummary').textContent = getSummary(pct);
+
+  // Score cards grid
+  let gridHtml = '';
+  CATEGORIES.forEach(cat => {
+    const s = scores[cat.id];
+    const c = Math.round((s.score / s.max) * 100);
+    gridHtml += `<div class="score-card">
+      <div class="cat-name">${cat.icon} ${cat.name}</div>
+      <div class="cat-bar"><div class="cat-bar-fill" style="width:${c}%;background:${cat.color};"></div></div>
+      <div class="cat-score-row"><span>${s.score} / ${s.max}</span><strong>${c}%</strong></div>
+    </div>`;
+  });
+  document.getElementById('scoreGrid').innerHTML = gridHtml;
+
+  // Breakdown table
+  let tableHtml = `<table>
+    <thead><tr><th>Domain</th><th>Score</th><th>Level</th></tr></thead><tbody>`;
+  CATEGORIES.forEach(cat => {
+    const s = scores[cat.id];
+    const c = Math.round((s.score / s.max) * 100);
+    const dotColor = c >= 70 ? 'var(--green-3)' : c >= 50 ? 'var(--amber)' : 'var(--red)';
+    const level = c >= 70 ? 'Strong' : c >= 50 ? 'Moderate' : 'Needs Attention';
+    tableHtml += `<tr>
+      <td><span class="score-dot" style="background:${dotColor};"></span>${cat.name}</td>
+      <td>${s.score} / ${s.max}</td>
+      <td><strong style="color:${dotColor};">${level}</strong></td>
+    </tr>`;
+  });
+  tableHtml += `</tbody></table>`;
+  document.getElementById('breakdownTable').innerHTML = tableHtml;
+
+  // Recommendations
+  const recs = generateRecommendations(scores);
+  let recHtml = '';
+  recs.forEach(r => {
+    recHtml += `<div class="rec-card">
+      <div class="rec-icon">${r.icon}</div>
+      <h4>${r.title}</h4>
+      <p>${r.desc}</p>
+    </div>`;
+  });
+  document.getElementById('recList').innerHTML = recHtml;
+}
+
+function generateRecommendations(scores) {
+  const recs = [];
+  const pct = (id) => Math.round((scores[id].score / scores[id].max) * 100);
+
+  if (pct('governance') < 70) {
+    recs.push({ icon: '&#9889;', title: 'Strengthen Climate Governance',
+      desc: 'Assign explicit climate oversight to the board or a dedicated committee. Adopt a formal climate policy and integrate climate KPIs into performance management.' });
+  }
+  if (pct('risk') < 70) {
+    recs.push({ icon: '&#128737;', title: 'Enhance Climate Risk Assessment',
+      desc: 'Conduct both physical and transition risk assessments. Integrate climate risks into your ERM framework and quantify potential financial impacts.' });
+  }
+  if (pct('emissions') < 70) {
+    recs.push({ icon: '&#127758;', title: 'Accelerate Emissions Management',
+      desc: 'Establish comprehensive GHG accounting (Scope 1, 2, and 3). Set science-based targets via SBTi and develop a net-zero roadmap with interim milestones.' });
+  }
+  if (pct('infrastructure') < 70) {
+    recs.push({ icon: '&#127959;', title: 'Build Operational Resilience',
+      desc: 'Assess climate vulnerability of all critical assets. Incorporate resilience criteria into capital planning and ensure business continuity plans address climate disruptions.' });
+  }
+  if (pct('supplychain') < 70) {
+    recs.push({ icon: '&#128666;', title: 'Strengthen Supply Chain Resilience',
+      desc: 'Engage suppliers on climate risk and emissions reduction. Integrate climate criteria into procurement and develop diversification strategies for critical inputs.' });
+  }
+  if (pct('disclosure') < 70) {
+    recs.push({ icon: '&#128202;', title: 'Improve Climate Disclosure',
+      desc: 'Publicly report aligned with TCFD/ISSB standards. Seek third-party assurance for climate data and proactively engage investors and regulators.' });
+  }
+
+  // If all strong, encourage leadership
+  if (recs.length === 0) {
+    recs.push({ icon: '&#127942;', title: 'Maintain Leadership Position',
+      desc: 'Your organization demonstrates comprehensive climate readiness. Consider setting more ambitious targets, sharing best practices publicly, and advocating for climate action in your industry.' });
+  }
+
+  return recs;
+}
+
+function restart() {
+  answers = {};
+  currentUser = null;
+  currentRecordId = null;
+  currentSection = 0;
+  document.getElementById('results').classList.add('hidden');
+  document.getElementById('landing').classList.remove('hidden');
+  updateProgress();
+}
+
+async function downloadPDF() {
+  if (!currentRecordId) return;
+  const rec = await fetchRecord(currentRecordId);
+  if (!rec) { alert('Could not load record from server.'); return; }
+  // Normalize field names (DB snake_case → camelCase for display)
+  rec.user = { name: rec.user_name, org: rec.user_org };
+  const win = window.open('', '_blank');
+  const catNames = CATEGORIES.map(c => ({ id: c.id, name: c.name.replace(/&amp;/g, '&'), icon: c.icon }));
+  const gradeColors = { 'Climate Leader': '#1b5e20', 'Advanced': '#2e7d32', 'Developing': '#e65100', 'Early Stage': '#c62828', 'Beginning': '#b71c1c' };
+  const gradeBg = { 'Climate Leader': '#e8f5e9', 'Advanced': '#e8f5e9', 'Developing': '#fff3e0', 'Early Stage': '#ffebee', 'Beginning': '#ffebee' };
+  const scoreColor = rec.pct >= 70 ? '#2e7d32' : rec.pct >= 50 ? '#e65100' : '#c62828';
+
+  let rows = '';
+  catNames.forEach(c => {
+    const s = rec.scores[c.id];
+    const cpct = Math.round((s.score / s.max) * 100);
+    const dot = cpct >= 70 ? '#4caf50' : cpct >= 50 ? '#ff8f00' : '#d32f2f';
+    const level = cpct >= 70 ? 'Strong' : cpct >= 50 ? 'Moderate' : 'Needs Attention';
+    rows += `<tr><td style="padding:8px 12px;border-bottom:1px solid #e0e0e0;">${c.icon} ${c.name}</td><td style="padding:8px 12px;border-bottom:1px solid #e0e0e0;text-align:center;">${s.score} / ${s.max}</td><td style="padding:8px 12px;border-bottom:1px solid #e0e0e0;text-align:center;">${cpct}%</td><td style="padding:8px 12px;border-bottom:1px solid #e0e0e0;text-align:center;"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${dot};margin-right:6px;"></span>${level}</td></tr>`;
+  });
+
+  win.document.write(`<!DOCTYPE html><html><head><title>Climate Readiness Report - ${rec.user.name}</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', Arial, sans-serif; color: #212121; padding: 40px; line-height: 1.5; }
+    .header { text-align: center; padding-bottom: 24px; border-bottom: 3px solid #2e7d32; margin-bottom: 24px; }
+    .header h1 { font-size: 26px; color: #1b5e20; margin-bottom: 4px; }
+    .header p { color: #616161; font-size: 14px; }
+    .score-section { text-align: center; padding: 32px 0; }
+    .score-section .big { font-size: 56px; font-weight: 800; color: ${scoreColor}; }
+    .score-section .label { font-size: 14px; color: #616161; }
+    .score-section .grade { display: inline-block; margin-top: 8px; padding: 4px 20px; border-radius: 20px; font-weight: 700; font-size: 16px; background: ${gradeBg[rec.grade]}; color: ${gradeColors[rec.grade] || '#2e7d32'}; }
+    .meta { text-align: center; color: #616161; font-size: 13px; margin-bottom: 24px; }
+    .meta span { margin: 0 12px; }
+    table { width: 100%; border-collapse: collapse; margin: 24px 0; }
+    th { background: #e8f5e9; color: #1b5e20; text-align: left; padding: 10px 12px; font-size: 13px; }
+    td { font-size: 14px; }
+    .footer { text-align: center; color: #9e9e9e; font-size: 12px; margin-top: 32px; padding-top: 16px; border-top: 1px solid #e0e0e0; }
+    @media print { body { padding: 20px; } }
+  </style></head><body>
+    <div class="header">
+      <h1>Climate Readiness Diagnostic Report</h1>
+      <p>Prepared for ${esc(rec.user.name)}${rec.user.org !== '(not specified)' ? ' &mdash; ' + esc(rec.user.org) : ''}</p>
+    </div>
+    <div class="meta">
+      <span>Assessment date: ${new Date(rec.user.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
+      <span>Report ID: ${rec.id}</span>
+    </div>
+    <div class="score-section">
+      <div class="big">${rec.overall} / ${rec.maxOverall}</div>
+      <div class="label">Overall Score &mdash; ${rec.pct}%</div>
+      <div class="grade">${rec.grade}</div>
+    </div>
+    <table>
+      <thead><tr><th>Domain</th><th style="text-align:center;">Score</th><th style="text-align:center;">%</th><th style="text-align:center;">Level</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    <div class="footer">Generated by Climate Readiness Diagnostic Tool &mdash; ${new Date().toLocaleDateString('en-GB')}</div>
+    <script>window.onload = function() { window.print(); }; <\\/script>
+  </body></html>`);
+  win.document.close();
+}
+
+// ─── Init ──────────────────────────────────────────────────────────
+updateProgress();
+</script>
+</body>
+</html>
