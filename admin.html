@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Console — Climate Readiness Diagnostic</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --green-1: #e8f5e9; --green-2: #c8e6c9; --green-3: #4caf50;
+  --green-4: #2e7d32; --green-5: #1b5e20;
+  --amber: #ff8f00; --red: #d32f2f; --blue: #1565c0;
+  --gray-1: #f5f5f5; --gray-2: #e0e0e0; --gray-3: #9e9e9e;
+  --gray-4: #616161; --gray-5: #212121;
+  --shadow: 0 2px 12px rgba(0,0,0,.08);
+  --radius: 12px;
+}
+body {
+  font-family: 'Inter', -apple-system, sans-serif;
+  background: #f0f4f0;
+  color: var(--gray-5);
+  line-height: 1.6;
+  min-height: 100vh;
+}
+.hidden { display: none !important; }
+
+header {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  color: #fff; padding: 0;
+  position: sticky; top: 0; z-index: 100;
+  box-shadow: 0 2px 20px rgba(0,0,0,.15);
+}
+.header-inner {
+  max-width: 1200px; margin: 0 auto;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 24px;
+}
+.logo { display: flex; align-items: center; gap: 12px; }
+.logo-icon {
+  width: 40px; height: 40px; background: rgba(255,255,255,.1);
+  border-radius: 10px; display: flex; align-items: center; justify-content: center;
+  font-size: 22px; color: #4fc3f7;
+}
+.logo h1 { font-size: 20px; font-weight: 700; letter-spacing: -.3px; }
+.logo span { font-size: 13px; color: rgba(255,255,255,.5); display: block; font-weight: 400; }
+.header-actions { display: flex; align-items: center; gap: 12px; }
+.header-actions a {
+  color: rgba(255,255,255,.7); text-decoration: none; font-size: 13px; font-weight: 500;
+  padding: 6px 14px; border: 1px solid rgba(255,255,255,.2); border-radius: 6px; transition: .15s;
+}
+.header-actions a:hover { color: #fff; border-color: rgba(255,255,255,.5); }
+
+.container { max-width: 1200px; margin: 0 auto; padding: 28px 24px 80px; }
+
+/* Stats Bar */
+.stats-bar {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 28px;
+}
+.stat-card {
+  background: #fff; border-radius: var(--radius); padding: 20px 24px;
+  box-shadow: var(--shadow);
+}
+.stat-card .stat-num { font-size: 28px; font-weight: 800; color: var(--green-4); line-height: 1.2; }
+.stat-card .stat-label { font-size: 12px; color: var(--gray-3); text-transform: uppercase; letter-spacing: .5px; font-weight: 600; margin-top: 2px; }
+.stat-card .stat-sub { font-size: 12px; color: var(--gray-3); margin-top: 4px; }
+
+/* Controls */
+.controls {
+  display: flex; justify-content: space-between; align-items: center;
+  flex-wrap: wrap; gap: 12px; margin-bottom: 20px;
+}
+.controls .left { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.search-box {
+  display: flex; align-items: center; gap: 8px;
+  background: #fff; border: 2px solid var(--gray-2); border-radius: 8px;
+  padding: 8px 14px; transition: .15s;
+}
+.search-box:focus-within { border-color: var(--green-3); }
+.search-box input {
+  border: none; outline: none; font-size: 14px; font-family: inherit;
+  background: transparent; min-width: 200px; color: var(--gray-5);
+}
+.search-box input::placeholder { color: var(--gray-3); }
+.controls .count { font-size: 14px; color: var(--gray-3); font-weight: 500; }
+
+.btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 10px 20px; border: none; border-radius: 8px;
+  font-size: 14px; font-weight: 600; cursor: pointer;
+  transition: all .2s; text-decoration: none; font-family: inherit;
+}
+.btn-sm { padding: 6px 12px; font-size: 12px; border-radius: 6px; }
+.btn-primary { background: var(--green-4); color: #fff; }
+.btn-primary:hover { background: var(--green-5); }
+.btn-danger { background: var(--red); color: #fff; }
+.btn-danger:hover { background: #b71c1c; }
+.btn-outline { background: transparent; color: var(--gray-4); border: 2px solid var(--gray-2); }
+.btn-outline:hover { border-color: var(--gray-3); color: var(--gray-5); }
+.btn-outline-red { background: transparent; color: var(--red); border: 2px solid var(--red); }
+.btn-outline-red:hover { background: #ffebee; }
+.btn-ghost { background: transparent; color: var(--gray-3); border: none; padding: 4px 8px; }
+.btn-ghost:hover { color: var(--red); }
+
+/* Table */
+.table-wrap {
+  background: #fff; border-radius: var(--radius); box-shadow: var(--shadow);
+  overflow-x: auto;
+}
+table { width: 100%; border-collapse: collapse; min-width: 800px; }
+th {
+  background: var(--green-1); color: var(--green-5); text-align: left;
+  padding: 14px 16px; font-size: 12px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: .3px; white-space: nowrap; cursor: pointer; user-select: none;
+}
+th:hover { background: #d7edd8; }
+th .sort-icon { color: var(--gray-3); margin-left: 4px; font-size: 11px; }
+td { padding: 14px 16px; font-size: 14px; border-top: 1px solid var(--gray-1); vertical-align: middle; }
+tr:hover td { background: #fafffa; }
+tr.empty td { text-align: center; padding: 48px 16px; color: var(--gray-3); font-size: 15px; }
+
+.grade-badge {
+  display: inline-block; padding: 2px 10px; border-radius: 12px;
+  font-size: 12px; font-weight: 700;
+}
+.name-cell { font-weight: 600; }
+.org-cell { color: var(--gray-3); font-size: 13px; }
+.date-cell { color: var(--gray-4); font-size: 13px; white-space: nowrap; }
+.actions-cell { white-space: nowrap; display: flex; gap: 4px; }
+.score-bar {
+  display: inline-block; width: 60px; height: 6px; background: var(--gray-1);
+  border-radius: 3px; overflow: hidden; vertical-align: middle; margin-right: 8px;
+}
+.score-bar-fill { height: 100%; border-radius: 3px; }
+
+/* Detail Panel */
+.detail-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 200;
+  display: flex; align-items: center; justify-content: center;
+  padding: 24px; animation: fadeIn .2s ease;
+}
+.detail-overlay.hidden { display: none; }
+.detail-panel {
+  background: #fff; border-radius: 16px; max-width: 720px; width: 100%;
+  max-height: 85vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,.15);
+  padding: 32px;
+}
+.detail-panel .dp-header {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  margin-bottom: 20px; padding-bottom: 16px; border-bottom: 2px solid var(--gray-1);
+}
+.detail-panel .dp-header h2 { font-size: 20px; font-weight: 700; }
+.detail-panel .dp-header .sub { color: var(--gray-3); font-size: 13px; margin-top: 2px; }
+.detail-panel .dp-close {
+  background: none; border: none; font-size: 24px; cursor: pointer;
+  color: var(--gray-3); padding: 4px; line-height: 1;
+}
+.detail-panel .dp-close:hover { color: var(--gray-5); }
+.dp-score-ring {
+  text-align: center; padding: 20px 0;
+}
+.dp-score-ring .big { font-size: 48px; font-weight: 800; }
+.dp-score-ring .pct { font-size: 15px; color: var(--gray-3); }
+.dp-score-ring .grade-badge { margin-top: 8px; font-size: 14px; padding: 4px 16px; }
+.dp-table { width: 100%; margin-top: 20px; }
+.dp-table td { padding: 10px 12px; font-size: 14px; }
+.dp-table td:first-child { font-weight: 500; }
+.dp-table .dp-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 8px; }
+.dp-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--gray-1); }
+
+.empty-state {
+  text-align: center; padding: 80px 20px;
+}
+.empty-state .icon { font-size: 48px; margin-bottom: 16px; opacity: .5; }
+.empty-state h3 { font-size: 18px; font-weight: 600; margin-bottom: 8px; }
+.empty-state p { color: var(--gray-3); font-size: 14px; margin-bottom: 20px; }
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+/* Confirm dialog */
+.confirm-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 300;
+  display: flex; align-items: center; justify-content: center;
+  padding: 24px; animation: fadeIn .2s ease;
+}
+.confirm-overlay.hidden { display: none; }
+.confirm-box {
+  background: #fff; border-radius: 16px; max-width: 400px; width: 100%;
+  padding: 28px; box-shadow: 0 20px 60px rgba(0,0,0,.15);
+}
+.confirm-box h3 { font-size: 17px; font-weight: 700; margin-bottom: 8px; }
+.confirm-box p { font-size: 14px; color: var(--gray-4); margin-bottom: 20px; }
+.confirm-box .cf-actions { display: flex; gap: 10px; justify-content: flex-end; }
+
+@media (max-width: 700px) {
+  .stats-bar { grid-template-columns: repeat(2, 1fr); }
+  .controls { flex-direction: column; align-items: stretch; }
+  .search-box input { min-width: 120px; }
+  .detail-panel { padding: 20px; margin: 12px; }
+}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="logo">
+      <div class="logo-icon">&#9878;</div>
+      <div>
+        <h1>Admin Console</h1>
+        <span>Climate Readiness Diagnostic</span>
+      </div>
+    </div>
+    <div class="header-actions">
+      <a href="index.html">&#8592; Back to Tool</a>
+    </div>
+  </div>
+</header>
+
+<div class="container" id="app">
+
+  <!-- Stats Bar -->
+  <div class="stats-bar" id="statsBar">
+    <div class="stat-card">
+      <div class="stat-num" id="statTotal">0</div>
+      <div class="stat-label">Total Assessments</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" id="statAvg">0%</div>
+      <div class="stat-label">Average Score</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" id="statLeaders">0</div>
+      <div class="stat-label">Climate Leaders</div>
+      <div class="stat-sub">(score &ge; 85%)</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" id="statDeveloping">0</div>
+      <div class="stat-label">Need Development</div>
+      <div class="stat-sub">(score &lt; 50%)</div>
+    </div>
+  </div>
+
+  <!-- Controls -->
+  <div class="controls">
+    <div class="left">
+      <div class="search-box">
+        <span style="color:var(--gray-3);">&#128269;</span>
+        <input type="text" id="searchInput" placeholder="Search by name or organization..." oninput="renderTable()">
+      </div>
+      <span class="count" id="resultCount">0 records</span>
+    </div>
+    <div>
+      <button class="btn btn-outline-red" onclick="confirmClearAll()">&#128465; Clear All</button>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="table-wrap" id="tableWrap">
+    <table>
+      <thead>
+        <tr>
+          <th onclick="toggleSort('name')">Name <span class="sort-icon" id="sortIcon-name">&#8595;</span></th>
+          <th onclick="toggleSort('org')">Organization <span class="sort-icon" id="sortIcon-org">&#8597;</span></th>
+          <th onclick="toggleSort('date')">Date <span class="sort-icon" id="sortIcon-date">&#8597;</span></th>
+          <th onclick="toggleSort('score')">Score <span class="sort-icon" id="sortIcon-score">&#8597;</span></th>
+          <th onclick="toggleSort('pct')">% <span class="sort-icon" id="sortIcon-pct">&#8597;</span></th>
+          <th onclick="toggleSort('grade')">Grade <span class="sort-icon" id="sortIcon-grade">&#8597;</span></th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Detail Panel -->
+<div class="detail-overlay hidden" id="detailOverlay">
+  <div class="detail-panel" id="detailPanel">
+    <div class="dp-header">
+      <div>
+        <h2 id="dpName">Name</h2>
+        <div class="sub" id="dpOrg">Organization</div>
+        <div class="sub" id="dpDate">Date</div>
+      </div>
+      <button class="dp-close" onclick="closeDetail()">&times;</button>
+    </div>
+    <div class="dp-score-ring">
+      <div class="big" id="dpScore">0 / 0</div>
+      <div class="pct" id="dpPct">0%</div>
+      <div class="grade-badge" id="dpGrade">N/A</div>
+    </div>
+    <table class="dp-table">
+      <thead><tr style="background:var(--green-1);"><th style="padding:10px 12px;text-align:left;font-size:13px;">Domain</th><th style="padding:10px 12px;text-align:center;font-size:13px;">Score</th><th style="padding:10px 12px;text-align:center;font-size:13px;">%</th><th style="padding:10px 12px;text-align:center;font-size:13px;">Level</th></tr></thead>
+      <tbody id="dpBody"></tbody>
+    </table>
+    <div class="dp-actions">
+      <button class="btn btn-outline" onclick="closeDetail()">Close</button>
+      <button class="btn btn-primary" onclick="dpDownloadPDF()">&#128196; Download PDF</button>
+      <button class="btn btn-danger" onclick="dpDelete()">&#128465; Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- Confirm Dialog -->
+<div class="confirm-overlay hidden" id="confirmOverlay">
+  <div class="confirm-box">
+    <h3 id="confirmTitle">Confirm</h3>
+    <p id="confirmMsg">Are you sure?</p>
+    <div class="cf-actions">
+      <button class="btn btn-outline" onclick="closeConfirm()">Cancel</button>
+      <button class="btn btn-danger" id="confirmBtn" onclick="">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── Data ──────────────────────────────────────────────────────────
+const CATEGORIES = [
+  { id: 'governance', icon: '\u26a1', name: 'Governance & Strategy' },
+  { id: 'risk', icon: '\u1f6e1', name: 'Risk Assessment & Management' },
+  { id: 'emissions', icon: '\u1f30e', name: 'Emissions & Energy' },
+  { id: 'infrastructure', icon: '\u1f3d7', name: 'Infrastructure & Operations' },
+  { id: 'supplychain', icon: '\u1f69a', name: 'Supply Chain & Value Chain' },
+  { id: 'disclosure', icon: '\u1f4ca', name: 'Stakeholder Engagement & Disclosure' }
+];
+
+const GRADE_ORDER = { 'Climate Leader': 5, 'Advanced': 4, 'Developing': 3, 'Early Stage': 2, 'Beginning': 1 };
+const GRADE_COLORS = { 'Climate Leader': '#1b5e20', 'Advanced': '#2e7d32', 'Developing': '#e65100', 'Early Stage': '#c62828', 'Beginning': '#b71c1c' };
+const GRADE_BG = { 'Climate Leader': '#e8f5e9', 'Advanced': '#e8f5e9', 'Developing': '#fff3e0', 'Early Stage': '#ffebee', 'Beginning': '#ffebee' };
+
+// ─── Supabase ──────────────────────────────────────────────────────
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+async function loadRecords() {
+  const { data, error } = await sb.from('assessments').select('*').order('created_at', { ascending: false });
+  if (error) { console.error('Supabase fetch error:', error); return []; }
+  // Normalize DB shape → display shape
+  return (data || []).map(r => ({
+    id: r.id,
+    user: { name: r.user_name, org: r.user_org, date: r.created_at },
+    scores: r.scores,
+    overall: r.overall,
+    maxOverall: r.max_overall,
+    pct: r.pct,
+    grade: r.grade
+  }));
+}
+
+// ─── State ─────────────────────────────────────────────────────────
+let sortField = 'date';
+let sortDir = -1;
+let detailRecordId = null;
+let cachedRecords = [];
+
+// ─── Stats ─────────────────────────────────────────────────────────
+function updateStats(records) {
+  document.getElementById('statTotal').textContent = records.length;
+  if (records.length === 0) {
+    document.getElementById('statAvg').textContent = '0%';
+    document.getElementById('statLeaders').textContent = '0';
+    document.getElementById('statDeveloping').textContent = '0';
+    return;
+  }
+  const avg = Math.round(records.reduce((s, r) => s + r.pct, 0) / records.length);
+  document.getElementById('statAvg').textContent = avg + '%';
+  document.getElementById('statLeaders').textContent = records.filter(r => r.pct >= 85).length;
+  document.getElementById('statDeveloping').textContent = records.filter(r => r.pct < 50).length;
+}
+
+// ─── Sort & Filter ─────────────────────────────────────────────────
+function toggleSort(field) {
+  if (sortField === field) sortDir *= -1;
+  else { sortField = field; sortDir = -1; }
+  document.querySelectorAll('.sort-icon').forEach(el => { el.textContent = '\u2197'; });
+  const icon = document.getElementById('sortIcon-' + field);
+  if (icon) icon.textContent = sortDir === -1 ? '\u2193' : '\u2191';
+  renderTable();
+}
+
+function getFiltered() {
+  const q = document.getElementById('searchInput').value.toLowerCase().trim();
+  let records = [...cachedRecords];
+  if (q) {
+    records = records.filter(r =>
+      r.user.name.toLowerCase().includes(q) ||
+      (r.user.org && r.user.org.toLowerCase().includes(q))
+    );
+  }
+  records.sort((a, b) => {
+    let va, vb;
+    switch (sortField) {
+      case 'name': va = a.user.name.toLowerCase(); vb = b.user.name.toLowerCase(); break;
+      case 'org': va = (a.user.org || '').toLowerCase(); vb = (b.user.org || '').toLowerCase(); break;
+      case 'date': va = a.user.date; vb = b.user.date; break;
+      case 'score': va = a.overall; vb = b.overall; break;
+      case 'pct': va = a.pct; vb = b.pct; break;
+      case 'grade': va = GRADE_ORDER[a.grade] || 0; vb = GRADE_ORDER[b.grade] || 0; break;
+      default: va = a.user.date; vb = b.user.date;
+    }
+    if (va < vb) return -1 * sortDir;
+    if (va > vb) return 1 * sortDir;
+    return 0;
+  });
+  return records;
+}
+
+// ─── Render Table ──────────────────────────────────────────────────
+function renderTable() {
+  const records = getFiltered();
+  document.getElementById('resultCount').textContent = records.length + ' record' + (records.length !== 1 ? 's' : '');
+  const tbody = document.getElementById('tableBody');
+  if (records.length === 0) {
+    tbody.innerHTML = '<tr class="empty"><td colspan="7">No records found. Complete a diagnostic first.</td></tr>';
+    return;
+  }
+  let html = '';
+  records.forEach(r => {
+    const gradeColor = GRADE_COLORS[r.grade] || '#2e7d32';
+    const gradeBg = GRADE_BG[r.grade] || '#e8f5e9';
+    const barColor = r.pct >= 70 ? 'var(--green-3)' : r.pct >= 50 ? 'var(--amber)' : 'var(--red)';
+    const date = new Date(r.user.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+    html += `<tr>
+      <td><span class="name-cell">${esc(r.user.name)}</span></td>
+      <td><span class="org-cell">${esc(r.user.org)}</span></td>
+      <td><span class="date-cell">${date}</span></td>
+      <td>${r.overall} / ${r.maxOverall}</td>
+      <td>
+        <div class="score-bar"><div class="score-bar-fill" style="width:${r.pct}%;background:${barColor};"></div></div>
+        ${r.pct}%
+      </td>
+      <td><span class="grade-badge" style="background:${gradeBg};color:${gradeColor};">${r.grade}</span></td>
+      <td class="actions-cell">
+        <button class="btn btn-sm btn-primary" onclick="openDetail('${r.id}')">&#128065; View</button>
+        <button class="btn btn-sm btn-outline" onclick="downloadSinglePDF('${r.id}')">&#128196; PDF</button>
+        <button class="btn btn-sm btn-ghost" onclick="confirmDelete('${r.id}')" title="Delete">&#10005;</button>
+      </td>
+    </tr>`;
+  });
+  tbody.innerHTML = html;
+}
+
+function esc(s) {
+  const d = document.createElement('div');
+  d.textContent = s || '';
+  return d.innerHTML;
+}
+
+// ─── Detail Panel ──────────────────────────────────────────────────
+function openDetail(id) {
+  detailRecordId = id;
+  const r = cachedRecords.find(rec => rec.id === id);
+  if (!r) return;
+  document.getElementById('dpName').textContent = r.user.name;
+  document.getElementById('dpOrg').textContent = r.user.org || '';
+  document.getElementById('dpDate').textContent = 'Assessed: ' + new Date(r.user.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+  document.getElementById('dpScore').textContent = r.overall + ' / ' + r.maxOverall;
+  document.getElementById('dpPct').textContent = r.pct + '%';
+  const gEl = document.getElementById('dpGrade');
+  gEl.textContent = r.grade;
+  gEl.style.background = GRADE_BG[r.grade] || '#e8f5e9';
+  gEl.style.color = GRADE_COLORS[r.grade] || '#2e7d32';
+  let rows = '';
+  CATEGORIES.forEach(c => {
+    const s = r.scores[c.id] || { score: 0, max: 25 };
+    const cpct = Math.round((s.score / s.max) * 100);
+    const dot = cpct >= 70 ? '#4caf50' : cpct >= 50 ? '#ff8f00' : '#d32f2f';
+    const level = cpct >= 70 ? 'Strong' : cpct >= 50 ? 'Moderate' : 'Needs Attention';
+    rows += `<tr><td><span class="dp-dot" style="background:${dot};"></span>${c.icon} ${c.name}</td><td style="text-align:center;">${s.score} / ${s.max}</td><td style="text-align:center;">${cpct}%</td><td style="text-align:center;"><span style="color:${dot};font-weight:600;">${level}</span></td></tr>`;
+  });
+  document.getElementById('dpBody').innerHTML = rows;
+  document.getElementById('detailOverlay').classList.remove('hidden');
+}
+
+function closeDetail() {
+  document.getElementById('detailOverlay').classList.add('hidden');
+  detailRecordId = null;
+}
+
+function dpDelete() {
+  if (detailRecordId) confirmDelete(detailRecordId);
+}
+
+// ─── Delete ────────────────────────────────────────────────────────
+function confirmDelete(id) {
+  const r = cachedRecords.find(rec => rec.id === id);
+  if (!r) return;
+  showConfirm('Delete Record', `Delete assessment for <strong>${esc(r.user.name)}</strong>? This cannot be undone.`,
+    () => { doDelete(id); }
+  );
+}
+
+async function doDelete(id) {
+  const { error } = await sb.from('assessments').delete().eq('id', id);
+  if (error) { console.error('Supabase delete error:', error); alert('Failed to delete.'); return; }
+  closeDetail();
+  closeConfirm();
+  await refreshData();
+}
+
+async function confirmClearAll() {
+  const records = cachedRecords;
+  if (records.length === 0) return;
+  showConfirm('Clear All Records', `Delete all <strong>${records.length}</strong> assessment records? This cannot be undone.`,
+    async () => {
+      const { error } = await sb.from('assessments').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+      if (error) { console.error('Supabase clear error:', error); alert('Failed to clear records.'); return; }
+      closeDetail();
+      closeConfirm();
+      await refreshData();
+    }
+  );
+}
+
+// ─── Confirm Dialog ────────────────────────────────────────────────
+function showConfirm(title, msg, onConfirm) {
+  document.getElementById('confirmTitle').innerHTML = title;
+  document.getElementById('confirmMsg').innerHTML = msg;
+  document.getElementById('confirmBtn').onclick = onConfirm;
+  document.getElementById('confirmOverlay').classList.remove('hidden');
+}
+function closeConfirm() {
+  document.getElementById('confirmOverlay').classList.add('hidden');
+}
+
+// ─── PDF Download ──────────────────────────────────────────────────
+async function downloadSinglePDF(id) {
+  const r = cachedRecords.find(rec => rec.id === id);
+  if (!r) return;
+  generatePDF(r);
+}
+
+function dpDownloadPDF() {
+  if (detailRecordId) downloadSinglePDF(detailRecordId);
+}
+
+function generatePDF(rec) {
+  const win = window.open('', '_blank');
+  const gradeColors = GRADE_COLORS;
+  const gradeBg = GRADE_BG;
+  const scoreColor = rec.pct >= 70 ? '#2e7d32' : rec.pct >= 50 ? '#e65100' : '#c62828';
+
+  let rows = '';
+  CATEGORIES.forEach(c => {
+    const s = rec.scores[c.id] || { score: 0, max: 25 };
+    const cpct = Math.round((s.score / s.max) * 100);
+    const dot = cpct >= 70 ? '#4caf50' : cpct >= 50 ? '#ff8f00' : '#d32f2f';
+    const level = cpct >= 70 ? 'Strong' : cpct >= 50 ? 'Moderate' : 'Needs Attention';
+    rows += `<tr><td style="padding:8px 12px;border-bottom:1px solid #e0e0e0;">${c.icon} ${c.name}</td><td style="padding:8px 12px;border-bottom:1px solid #e0e0e0;text-align:center;">${s.score} / ${s.max}</td><td style="padding:8px 12px;border-bottom:1px solid #e0e0e0;text-align:center;">${cpct}%</td><td style="padding:8px 12px;border-bottom:1px solid #e0e0e0;text-align:center;"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${dot};margin-right:6px;"></span>${level}</td></tr>`;
+  });
+
+  win.document.write(`<!DOCTYPE html><html><head><title>Climate Readiness Report - ${esc(rec.user.name)}</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family:'Segoe UI',Arial,sans-serif; color:#212121; padding:40px; line-height:1.5; }
+    .header { text-align:center; padding-bottom:24px; border-bottom:3px solid #2e7d32; margin-bottom:24px; }
+    .header h1 { font-size:26px; color:#1b5e20; margin-bottom:4px; }
+    .header p { color:#616161; font-size:14px; }
+    .score-section { text-align:center; padding:32px 0; }
+    .score-section .big { font-size:56px; font-weight:800; color:${scoreColor}; }
+    .score-section .label { font-size:14px; color:#616161; }
+    .score-section .grade { display:inline-block; margin-top:8px; padding:4px 20px; border-radius:20px; font-weight:700; font-size:16px; background:${gradeBg[rec.grade]}; color:${gradeColors[rec.grade] || '#2e7d32'}; }
+    .meta { text-align:center; color:#616161; font-size:13px; margin-bottom:24px; }
+    .meta span { margin:0 12px; }
+    table { width:100%; border-collapse:collapse; margin:24px 0; }
+    th { background:#e8f5e9; color:#1b5e20; text-align:left; padding:10px 12px; font-size:13px; }
+    td { font-size:14px; }
+    .footer { text-align:center; color:#9e9e9e; font-size:12px; margin-top:32px; padding-top:16px; border-top:1px solid #e0e0e0; }
+  </style></head><body>
+    <div class="header">
+      <h1>Climate Readiness Diagnostic Report</h1>
+      <p>Prepared for ${esc(rec.user.name)}${rec.user.org !== '(not specified)' ? ' &mdash; ' + esc(rec.user.org) : ''}</p>
+    </div>
+    <div class="meta">
+      <span>Assessment date: ${new Date(rec.user.date).toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' })}</span>
+      <span>Report ID: ${rec.id}</span>
+    </div>
+    <div class="score-section">
+      <div class="big">${rec.overall} / ${rec.maxOverall}</div>
+      <div class="label">Overall Score &mdash; ${rec.pct}%</div>
+      <div class="grade">${rec.grade}</div>
+    </div>
+    <table>
+      <thead><tr><th>Domain</th><th style="text-align:center;">Score</th><th style="text-align:center;">%</th><th style="text-align:center;">Level</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    <div class="footer">Generated by Climate Readiness Diagnostic Tool &mdash; ${new Date().toLocaleDateString('en-GB')}</div>
+    <script>window.onload=function(){window.print();};<\\/script>
+  </body></html>`);
+  win.document.close();
+}
+
+// ─── Refresh ───────────────────────────────────────────────────────
+async function refreshData() {
+  cachedRecords = await loadRecords();
+  updateStats(cachedRecords);
+  renderTable();
+}
+
+// ─── Init ──────────────────────────────────────────────────────────
+(async () => { await refreshData(); })();
+</script>
+</body>
+</html>
